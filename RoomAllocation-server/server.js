@@ -17,20 +17,7 @@ const PORT = process.env.PORT || 5000;
 const mongoURI = process.env.MONGO_URI;
 // const mongoURI = 'mongodb+srv://<username>:<password>@cluster.mongodb.net/SeminarDB';
 
-// חיבור למסד הנתונים
-mongoose
-  .connect(mongoURI)
-  .then(() => {
-    console.log("Connected to MongoDB successfully!");
-    // רק אחרי שהחיבור הצליח, השרת מתחיל להאזין
-    app.listen(PORT, () => {
-      console.log(`🚀Server is running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("MongoDB connection error:", err.message);
-    process.exit(1); // סגירת האפליקציה במקרה של שגיאת חיבור קריטית
-  });
+
 
 // הגדרת הסכמה בהתאם לתמונה שלך
 const RoomSchema = new mongoose.Schema({
@@ -55,3 +42,17 @@ app.get("/api/rooms", async (req, res) => {
 app.get("/", (req, res) => {
   res.send("Room Allocation API is running...");
 });
+ // חיבור למסד הנתונים
+mongoose
+  .connect(mongoURI)
+  .then(() => {
+    console.log("Connected to MongoDB successfully!");
+    // רק אחרי שהחיבור הצליח, השרת מתחיל להאזין
+    app.listen(PORT, () => {
+      console.log(`🚀Server is running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("MongoDB connection error:", err.message);
+    process.exit(1); // סגירת האפליקציה במקרה של שגיאת חיבור קריטית
+  });
