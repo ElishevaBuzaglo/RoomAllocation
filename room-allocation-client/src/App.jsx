@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import RoomsList from './RoomsList.jsx'
-import './App.css'
+import RoomsList from './components/RoomsList.jsx' 
+import './styles/App.css' 
 
 function App() {
   const [count, setCount] = useState(0)
