@@ -1,58 +1,23 @@
-// בס"ד
-const dns = require('dns');
-dns.setServers(['8.8.8.8', '1.1.1.1']);
-require("dotenv").config(); //.env טוען את המשתנים מקובץ ה-
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
+import "dotenv/config";
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import roomRoutes from "./api/routes/roomRoutes.js"; // חובה לציין סיומת .js
 
 const app = express();
 
-// Middleware לקריאת JSON
 app.use(express.json());
 app.use(cors());
 
-// הגדרת משתנים מה-env
+// ניתוב הבקשות
+app.use("/api/rooms", roomRoutes);
+
 const PORT = process.env.PORT || 5000;
 const mongoURI = process.env.MONGO_URI;
-// const mongoURI = 'mongodb+srv://<username>:<password>@cluster.mongodb.net/SeminarDB';
 
-
-
-// הגדרת הסכמה בהתאם לתמונה שלך
-const RoomSchema = new mongoose.Schema({
-  wing: String,
-  floor: Number,
-  size: Number,
-  hasProjector: Boolean,
-  status: String,
-});
-const Room = mongoose.model("Room", RoomSchema, "Rooms"); // הפרמטר השלישי מוודא פנייה לאוסף Rooms
-// נתיב לקבלת רשימת החדרים
-app.get("/api/rooms", async (req, res) => {
-  try {
-    const rooms = await Room.find();
-    res.json(rooms);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// נתיב בדיקה ראשוני
-app.get("/", (req, res) => {
-  res.send("Room Allocation API is running...");
-});
- // חיבור למסד הנתונים
-mongoose
-  .connect(mongoURI)
+mongoose.connect(mongoURI)
   .then(() => {
-    console.log("Connected to MongoDB successfully!");
-    // רק אחרי שהחיבור הצליח, השרת מתחיל להאזין
-    app.listen(PORT, () => {
-      console.log(`🚀Server is running on http://localhost:${PORT}`);
-    });
+    console.log("✅ Connected to MongoDB successfully!");
+    app.listen(PORT, () => console.log(`🚀 Server on http://localhost:${PORT}`));
   })
-  .catch((err) => {
-    console.error("MongoDB connection error:", err.message);
-    process.exit(1); // סגירת האפליקציה במקרה של שגיאת חיבור קריטית
-  });
+  .catch(err => console.error("❌ MongoDB Error:", err.message));
