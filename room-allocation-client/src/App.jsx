@@ -1,15 +1,18 @@
 import { useState } from 'react'
-import RoomsList from './components/RoomsList.jsx' 
+import { BrowserRouter } from "react-router"
 import './styles/App.css' 
+import { Nav } from './routing/Nav.jsx'
+import { Routing } from './routing/Routing.jsx'
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <>
-      <h1>פרויקט משותף בגיט</h1>
-      <h2>שיבוץ חדרים</h2>
-      <RoomsList></RoomsList>
+      <BrowserRouter>
+            <Nav></Nav>
+            <Routing></Routing>
+        </BrowserRouter>
     </>
   )
 }

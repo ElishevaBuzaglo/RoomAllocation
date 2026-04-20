@@ -1,23 +1,24 @@
 // בס"ד
-const dns = require('dns');
+// במקום require
+import dns from 'node:dns';
 dns.setServers(['8.8.8.8', '1.1.1.1']);
-require("dotenv").config(); //.env טוען את המשתנים מקובץ ה-
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
+
+import 'dotenv/config'; //.env טוען את המשתנים מקובץ ה-
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
 
 const app = express();
 
 // Middleware לקריאת JSON
 app.use(express.json());
-app.use(cors);
+app.use(cors());
 
 // הגדרת משתנים מה-env
 const PORT = process.env.PORT || 5000;
 const mongoURI = process.env.MONGO_URI;
 // const mongoURI = 'mongodb+srv://<username>:<password>@cluster.mongodb.net/SeminarDB';
 
-// הגדרת הסכמה בהתאם לתמונה שלך
 const RoomSchema = new mongoose.Schema({
   wing: String,
   floor: Number,
@@ -25,7 +26,8 @@ const RoomSchema = new mongoose.Schema({
   hasProjector: Boolean,
   status: String,
 });
-const Room = mongoose.model("Room", RoomSchema, "Rooms"); // הפרמטר השלישי מוודא פנייה לאוסף Rooms
+
+const Room = mongoose.model("Room", RoomSchema, "Rooms"); 
 // נתיב לקבלת רשימת החדרים
 app.get("/api/rooms", async (req, res) => {
   try {

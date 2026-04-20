@@ -1,0 +1,62 @@
+.navbar {
+  background-color: #ffffff;
+  padding: 0.8rem 10%; /* רווח צדדי שמתאים למסכים רחבים */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-content {
+  display: flex;
+  justify-content: space-between; /* דוחף את הלוגו והלינקים לצדדים */
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto; /* מרכז את כל התוכן בתוך ה-Navbar */
+}
+
+/* עיצוב הלוגו */
+.logo {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon {
+  font-size: 1.5rem;
+}
+
+.logo-text {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1e293b; /* צבע כחול-כהה עמוק */
+  letter-spacing: -0.5px;
+}
+
+/* תפריט הלינקים */
+.nav-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.link {
+  text-decoration: none;
+  color: #64748b; /* אפור מודרני */
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+/* עיצוב לינק פעיל עם רקע עדין */
+.link.active {
+  color: #3b82f6;
+  background-color: #eff6ff; /* כחול בהיר מאוד לרקע */
+}
+
+.link:hover:not(.active) {
+  color: #1e293b;
+  background-color: #f1f5f9;
+}
