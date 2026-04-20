@@ -6,6 +6,7 @@ import {
   deleteAssignment,
   clearRoomAssignments,
 } from "../controllers/roomController.js";
+import { getAllRooms } from "../controllers/roomController.js";
 
 const router = express.Router();
 
@@ -23,3 +24,4 @@ router.delete("/:roomId/assignments/:assignmentId", deleteAssignment);
 router.delete("/:roomId/assignments", clearRoomAssignments);
 
 export default router;
+
