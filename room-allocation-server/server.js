@@ -10,14 +10,12 @@ const app = express();
 
 // Middleware לקריאת JSON
 app.use(express.json());
-app.use(cors());
+app.use(cors);
 
 // הגדרת משתנים מה-env
 const PORT = process.env.PORT || 5000;
 const mongoURI = process.env.MONGO_URI;
 // const mongoURI = 'mongodb+srv://<username>:<password>@cluster.mongodb.net/SeminarDB';
-
-
 
 // הגדרת הסכמה בהתאם לתמונה שלך
 const RoomSchema = new mongoose.Schema({
@@ -31,7 +29,7 @@ const Room = mongoose.model("Room", RoomSchema, "Rooms"); // הפרמטר השל
 // נתיב לקבלת רשימת החדרים
 app.get("/api/rooms", async (req, res) => {
   try {
-    const rooms = await Room.find();
+    const rooms = await Room.find();    
     res.json(rooms);
   } catch (err) {
     res.status(500).json({ message: err.message });
