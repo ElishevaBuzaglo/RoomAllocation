@@ -1,3 +1,4 @@
+<<<<<<< Shoshana
 // בס"ד
 // במקום require
 import dns from 'node:dns';
@@ -8,13 +9,29 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 
+=======
+import "dotenv/config";
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import roomRoutes from "./api/routes/roomRoutes.js"; // חובה לציין סיומת .js
+import allocationRoutes from "./api/routes/allocationRoutes.js"; // חובה לציין סיומת .js
+>>>>>>> main
 const app = express();
 
 // Middleware לקריאת JSON
 app.use(express.json());
 app.use(cors());
 
+<<<<<<< Shoshana
 // הגדרת משתנים מה-env
+=======
+// ניתוב הבקשות
+app.use("/api/rooms", roomRoutes);
+//ניתוב לשיבוצים
+app.use("/api/allocations", allocationRoutes);
+
+>>>>>>> main
 const PORT = process.env.PORT || 5000;
 const mongoURI = process.env.MONGO_URI;
 // const mongoURI = 'mongodb+srv://<username>:<password>@cluster.mongodb.net/SeminarDB';
