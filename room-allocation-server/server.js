@@ -21,16 +21,6 @@ const PORT = process.env.PORT || 5000;
 const mongoURI = process.env.MONGO_URI;
 // const mongoURI = 'mongodb+srv://<username>:<password>@cluster.mongodb.net/SeminarDB';
 
-const RoomSchema = new mongoose.Schema({
-  wing: String,
-  floor: Number,
-  size: Number,
-  hasProjector: Boolean,
-  status: String,
-});
-
-const Room = mongoose.model("Room", RoomSchema, "Rooms"); 
-// נתיב לקבלת רשימת החדרים
 app.get("/api/rooms", async (req, res) => {
   try {
     const rooms = await Room.find();    
@@ -45,8 +35,7 @@ app.get("/", (req, res) => {
   res.send("Room Allocation API is running...");
 });
  // חיבור למסד הנתונים
-mongoose
-  .connect(mongoURI)
+mongoose.connect(mongoURI)
   .then(() => {
     console.log("Connected to MongoDB successfully!");
     // רק אחרי שהחיבור הצליח, השרת מתחיל להאזין
