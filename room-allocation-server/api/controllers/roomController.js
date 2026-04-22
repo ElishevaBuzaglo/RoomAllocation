@@ -1,16 +1,7 @@
 import Room from "../models/Room.js";
+import Allocation from "../models/Allocation.js";
 
-// קבלת כל החדרים
-export const getAllRooms = async (req, res) => {
-  try {
-    const rooms = await Room.find();
-    res.status(200).json(rooms);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// יצירת חדר חדש
+// --- Create: יצירת חדר חדש ---
 export const createRoom = async (req, res) => {
   try {
     const newRoom = new Room(req.body);
@@ -21,69 +12,54 @@ export const createRoom = async (req, res) => {
   }
 };
 
-
-
-// הוספת שיבוץ קבוע ובדיקת התנגשויות
-export const addPermanentAssignment = async (req, res) => {
-  const { roomId } = req.params;
-  const { title, teacherName, day, startTime, endTime } = req.body;
-
+// --- Read: קבלת כל החדרים ---
+export const getAllRooms = async (req, res) => {
   try {
-    const room = await Room.findById(roomId);
-    if (!room) return res.status(404).json({ message: "החדר לא נמצא" });
-
-    // בדיקת התנגשויות: מוודאים שאין שיבוץ קיים באותו יום שחופף בשעות
-    // לוגיקת חפיפה: (התחלה_חדשה < סיום_קיים) וגם (סיום_חדש > התחלה_קיים)
-    const hasConflict = room.assignments.some(asm => {
-      return asm.day === day && startTime < asm.endTime && endTime > asm.startTime;
-    });
-
-    if (hasConflict) {
-      return res.status(400).json({ message: "החדר כבר תפוס בטווח השעות המבוקש" });
-    }
-
-    // הוספת השיבוץ 
-    room.assignments.push({ title, teacherName, day, startTime, endTime });
-    await room.save();
-
-    res.status(201).json({ message: "השיבוץ נוסף בהצלחה", room });
+    const rooms = await Room.find();
+    res.status(200).json(rooms);
   } catch (err) {
-    res.status(500).json({ message: "שגיאה בהוספת שיבוץ", error: err.message });
+    res.status(500).json({ message: "שגיאה בשליפת חדרים", error: err.message });
   }
 };
 
-// מחיקת שיבוץ קבוע 
-export const deleteAssignment = async (req, res) => {
-  const { roomId, assignmentId } = req.params;
-
+// --- Read: קבלת חדר ספציפי עם המערכת שלו ---
+export const getRoomById = async (req, res) => {
   try {
-    const room = await Room.findById(roomId);
+    // כאן נכנס ה-Populate הווירטואלי שמביא את השיבוצים בזיכרון
+    const room = await Room.findById(req.params.id).populate('allocations');
     if (!room) return res.status(404).json({ message: "החדר לא נמצא" });
-
-    // שימוש ב-pull של Mongoose למחיקה לפי ה-ID של הסאב-דוקומנט
-    room.assignments.pull({ _id: assignmentId });
-    await room.save();
-
-    res.status(200).json({ message: "השיבוץ נמחק בהצלחה", room });
+    res.status(200).json(room);
   } catch (err) {
-    res.status(500).json({ message: "שגיאה במחיקת שיבוץ", error: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
-
-// ניקוי כל השיבוצים בחדר 
-export const clearRoomAssignments = async (req, res) => {
-  const { roomId } = req.params;
-
+// --- Update: עדכון פרטי חדר ---
+export const updateRoom = async (req, res) => {
   try {
-    const room = await Room.findById(roomId);
-    if (!room) return res.status(404).json({ message: "החדר לא נמצא" });
-
-    room.assignments = []; // ריקון המערך
-    await room.save();
-
-    res.status(200).json({ message: "כל השיבוצים בחדר נוקו", room });
+    const updatedRoom = await Room.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true, runValidators: true } // מחזיר את האובייקט המעודכן ובודק תקינות
+    );
+    res.status(200).json(updatedRoom);
   } catch (err) {
-    res.status(500).json({ message: "שגיאה בניקוי שיבוצים", error: err.message });
+    res.status(400).json({ message: "שגיאה בעדכון", error: err.message });
+  }
+};
+
+// --- Delete: מחיקת חדר וניקוי שיבוצים ---
+export const deleteRoom = async (req, res) => {
+  try {
+    const roomId = req.params.id;
+    // ניקוי יתומים: מחיקת כל השיבוצים/ביטולים של החדר הזה
+    await Allocation.deleteMany({ room: roomId });
+    // מחיקת החדר
+    const deletedRoom = await Room.findByIdAndDelete(roomId);
+    
+    if (!deletedRoom) return res.status(404).json({ message: "החדר לא נמצא" });
+    res.status(200).json({ message: "החדר וכל נתוניו נמחקו בהצלחה" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
