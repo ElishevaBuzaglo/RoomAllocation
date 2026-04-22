@@ -4,10 +4,13 @@ import {
   getAllRooms, 
   getRoomById, 
   updateRoom, 
-  deleteRoom 
+  deleteRoom,
+  searchRooms
 } from "../controllers/roomController.js";
 
 const router = express.Router();
+
+router.get("/search", searchRooms);
 
 // נתיב כללי (POST ליצירה, GET לרשימה)
 router.route("/")

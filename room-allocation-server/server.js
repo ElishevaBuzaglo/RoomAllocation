@@ -1,4 +1,3 @@
-
 import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
@@ -7,10 +6,8 @@ import roomRoutes from "./api/routes/roomRoutes.js"; // חובה לציין סי
 import allocationRoutes from "./api/routes/allocationRoutes.js"; // חובה לציין סיומת .js
 const app = express();
 
-// Middleware לקריאת JSON
 app.use(express.json());
 app.use(cors());
-
 
 // ניתוב הבקשות
 app.use("/api/rooms", roomRoutes);
@@ -19,31 +16,10 @@ app.use("/api/allocations", allocationRoutes);
 
 const PORT = process.env.PORT || 5000;
 const mongoURI = process.env.MONGO_URI;
-// const mongoURI = 'mongodb+srv://<username>:<password>@cluster.mongodb.net/SeminarDB';
 
-app.get("/api/rooms", async (req, res) => {
-  try {
-    const rooms = await Room.find();    
-    res.json(rooms);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// נתיב בדיקה ראשוני
-app.get("/", (req, res) => {
-  res.send("Room Allocation API is running...");
-});
- // חיבור למסד הנתונים
 mongoose.connect(mongoURI)
   .then(() => {
-    console.log("Connected to MongoDB successfully!");
-    // רק אחרי שהחיבור הצליח, השרת מתחיל להאזין
-    app.listen(PORT, () => {
-      console.log(`🚀Server is running on http://localhost:${PORT}`);
-    });
+    console.log("✅ Connected to MongoDB successfully!");
+    app.listen(PORT, () => console.log(`🚀 Server on http://localhost:${PORT}`));
   })
-  .catch((err) => {
-    console.error("MongoDB connection error:", err.message);
-    process.exit(1); // סגירת האפליקציה במקרה של שגיאת חיבור קריטית
-  });
+  .catch(err => console.error("❌ MongoDB Error:", err.message));

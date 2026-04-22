@@ -63,3 +63,45 @@ export const deleteRoom = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// --- Search: חיפוש חדרים לפי מאפיינים וזמינות ---
+export const searchRooms = async (req, res) => {
+  try {
+    const { 
+      minSize,      // מינימום מקומות
+      wing,         // אגף
+      floor,        // קומה
+      roomType,     // סוג חדר
+      hasProjector, // האם חובה מקרן
+      status        // סטטוס (למשל רק available)
+    } = req.query;
+
+    // בניית אובייקט שאילתה דינמי
+    let filter = {};
+
+    // סינון לפי קיבולת (גדול או שווה לערך שנשלח)
+    if (minSize) filter.size = { $gte: Number(minSize) };
+
+    // סינון לפי אגף
+    if (wing) filter.wing = wing;
+
+    // סינון לפי קומה
+    if (floor) filter.floor = Number(floor);
+
+    // סינון לפי סוג חדר
+    if (roomType) filter.roomType = roomType;
+
+    // סינון לפי מקרן (רק אם המשתמש ביקש ספציפית "true")
+    if (hasProjector === 'true') filter.hasProjector = true;
+
+    // סינון לפי סטטוס (ברירת מחדל בדרך כלל נרצה רק חדרים זמינים)
+    if (status) filter.status = status;
+
+    // הרצת השאילתה ב-DB כולל ה-Virtuals של השיבוצים במידת הצורך
+    const rooms = await Room.find(filter).populate('allocations');
+
+    res.status(200).json(rooms);
+  } catch (err) {
+    res.status(500).json({ message: "שגיאה בחיפוש חדרים", error: err.message });
+  }
+};
