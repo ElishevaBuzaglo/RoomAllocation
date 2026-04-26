@@ -15,12 +15,37 @@ export const createRoom = async (req, res) => {
 // --- Read: קבלת כל החדרים ---
 export const getAllRooms = async (req, res) => {
   try {
-    const rooms = await Room.find();
+    const { date } = req.query; // המשתמש שולח תאריך ב-Query String
+    
+    // שליפת כל החדרים עם השיבוצים והביטולים שלהם
+    const rooms = await Room.find().populate('allocations');
+
+    if (date) {
+      const searchDate = new Date(date).toDateString();
+      
+      // נעבור על כל חדר ונסמן אם הוא באמת פנוי בתאריך הזה
+      const roomsWithStatus = rooms.map(room => {
+        const roomObj = room.toObject();
+        
+        // בדיקה: האם קיים ביטול לתאריך המבוקש?
+        const isCancelled = room.cancellations.some(c => 
+          new Date(c.date).toDateString() === searchDate
+        );
+
+        // הוספת שדה זמני לתשובה שמעיד על מצב הביטול
+        roomObj.isCancelledToday = isCancelled;
+        return roomObj;
+      });
+      
+      return res.status(200).json(roomsWithStatus);
+    }
+
     res.status(200).json(rooms);
   } catch (err) {
     res.status(500).json({ message: "שגיאה בשליפת חדרים", error: err.message });
   }
 };
+
 
 // --- Read: קבלת חדר ספציפי עם המערכת שלו ---
 export const getRoomById = async (req, res) => {
@@ -63,3 +88,4 @@ export const deleteRoom = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+

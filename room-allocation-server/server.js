@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import cors from "cors";
 import roomRoutes from "./api/routes/roomRoutes.js"; // חובה לציין סיומת .js
 import allocationRoutes from "./api/routes/allocationRoutes.js"; // חובה לציין סיומת .js
+import cancellationRoutes from './api/routes/cancellationRoutes.js';
+
 const app = express();
 
 app.use(express.json());
@@ -11,6 +13,8 @@ app.use(cors());
 
 // ניתוב הבקשות
 app.use("/api/rooms", roomRoutes);
+app.use("/api/cancellations", cancellationRoutes);
+
 //ניתוב לשיבוצים
 app.use("/api/allocations", allocationRoutes);
 
