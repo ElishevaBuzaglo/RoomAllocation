@@ -11,6 +11,15 @@ import { validateRoomSearch } from '../middlewares/roomValidation.js';
 
 const router = express.Router();
 
+router.route("/")
+    .get(getAllRooms)
+    .post(createRoom);
+
+router.route("/:id")
+    .get(getRoomById)
+    .put(updateRoom)
+    .delete(deleteRoom);
+
 router.get('/search', validateRoomSearch, searchRooms);
 
 // נתיב כללי (POST ליצירה, GET לרשימה)
@@ -18,10 +27,7 @@ router.route("/")
   .post(createRoom)
   .get(getAllRooms);
 
-// נתיב לפי ID (GET לשליפה, PUT לעדכון, DELETE למחיקה)
-router.route("/:id")
-  .get(getRoomById)
-  .put(updateRoom)
-  .delete(deleteRoom);
+router.route("/").get(getAllRooms).post(createRoom);
+router.route("/:id").get(getRoomById).delete(deleteRoom);
 
 export default router;
