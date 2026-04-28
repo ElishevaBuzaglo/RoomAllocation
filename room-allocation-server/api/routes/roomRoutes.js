@@ -1,23 +1,25 @@
-import express from "express";
-import { 
-  createRoom, 
-  getAllRooms, 
-  getRoomById, 
-  updateRoom, 
-  deleteRoom 
-} from "../controllers/roomController.js";
+// // בס"ד
+// import express from "express";
+// import { getAllRooms, createRoom, getRoomById, updateRoom, deleteRoom } from "../controllers/roomController.js";
 
+// const router = express.Router();
+
+// router.route("/")
+//     .get(getAllRooms)
+//     .post(createRoom);
+
+// router.route("/:id")
+//     .get(getRoomById)
+//     .put(updateRoom)
+//     .delete(deleteRoom);
+
+// export default router;
+
+import express from "express";
+import { getAllRooms, createRoom, getRoomById, deleteRoom } from "../controllers/roomController.js";
 const router = express.Router();
 
-// נתיב כללי (POST ליצירה, GET לרשימה)
-router.route("/")
-  .post(createRoom)
-  .get(getAllRooms);
-
-// נתיב לפי ID (GET לשליפה, PUT לעדכון, DELETE למחיקה)
-router.route("/:id")
-  .get(getRoomById)
-  .put(updateRoom)
-  .delete(deleteRoom);
+router.route("/").get(getAllRooms).post(createRoom);
+router.route("/:id").get(getRoomById).delete(deleteRoom);
 
 export default router;
