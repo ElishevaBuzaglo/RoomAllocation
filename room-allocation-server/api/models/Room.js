@@ -1,74 +1,32 @@
 import mongoose from "mongoose";
 
-// הגדרת מבנה הביטול החד-פעמי
-const CancellationSchema = new mongoose.Schema({
-  date: {
-    type: Date,
-    required: true // התאריך הספציפי שבו בוטל השימוש בחדר
-  },
-  startTime: {
-    type: String,
-    required: true
-  },
-  endTime: {
-    type: String,
-    required: true
-  },
-  reason: {
-    type: String,
-    trim: true // סיבת הביטול (אופציונלי)
-  },
-  cancelledBy: {
-    type: String // מי ביצע את הביטול
-  }
-}, { timestamps: true })
-
 const RoomSchema = new mongoose.Schema({
-  roomNumber: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
-  },
-  wing: {
-    type: String,
-    required: true // אגף (למשל: אגף א')
-  },
-  floor: {
-    type: Number,
-    required: true // קומה
-  },
-  size: {
-    type: Number,
-    required: true // קיבולת/גודל החדר
-  },
-  hasProjector: {
-    type: Boolean,
-    default: false // האם קיים מקרן
-  },
-  roomType: {
-    type: String,
-    enum: ["כיתה", "מעבדה", "אולם", "חדר ישיבות", "חדר מחשבים"],
-    default: "כיתה"
-  },
-  status: {
-    type: String,
-    enum: ["available", "maintenance", "occupied"],
-    default: "available"
-  },
-  cancellations: [CancellationSchema]
-}, {
+  roomNumber: { type: String, required: true, unique: true, trim: true },
+  wing: { type: String, required: true },
+  floor: { type: Number, required: true },
+  size: { type: Number, required: true },
+  hasProjector: { type: Boolean, default: false },
+  roomType: { 
+    type: String, 
+    enum: ["כיתה", "מעבדה", "אולם", "חדר ישיבות", "חדר מחשבים"], 
+    default: "כיתה" 
+  }
+}, { 
   timestamps: true,
-  // הגדרות אלו מאפשרות ל-Virtuals (השיבוצים) לעבור לצד הלקוח (React)
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+  toJSON: { virtuals: true }, 
+  toObject: { virtuals: true } 
 });
 
-// הגדרת קשר וירטואלי - מאחד את השיבוצים בזיכרון בלי להכביד על הדיסק
 RoomSchema.virtual('allocations', {
   ref: 'Allocation',
   localField: '_id',
   foreignField: 'room'
 });
 
-export default mongoose.model("Room", RoomSchema, "Rooms");
+RoomSchema.virtual('cancellations', {
+  ref: 'Cancellation',
+  localField: '_id',
+  foreignField: 'room'
+});
+
+export default mongoose.model("Room", RoomSchema);
