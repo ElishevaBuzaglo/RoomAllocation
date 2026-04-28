@@ -1,0 +1,81 @@
+.rooms-page {
+    padding: 60px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    direction: rtl;
+    /* ממרכז את כל התוכן של העמוד (כותרת + גריד) */
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+}
+
+.rooms-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.rooms-header h1 {
+    font-size: 2.8rem;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.rooms-grid {
+    display: grid;
+    /* יצירת עמודות בגודל קבוע - כך שהן לא יימתחו לכל רוחב המסך */
+    grid-template-columns: repeat(auto-fit, 320px); 
+    gap: 30px;
+    width: 100%;
+    /* ממרכז את ה-Grid עצמו בתוך ה-container */
+    justify-content: center; 
+}
+
+.room-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 30px;
+    /* צל עדין יותר שנותן עומק */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border: 1px solid #eef2f6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.room-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+.room-card h3 {
+    font-size: 1.5rem;
+    margin: 15px 0 10px 0;
+    color: #2d3436;
+}
+
+.room-info p {
+    color: #636e72;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+
+.rooms-container{
+    text-align: center;
+}
+
+.view-btn {
+    background: #0984e3;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+.view-btn:hover {
+    background: #00cec9; /* שינוי צבע קטן ב-hover לטאץ' מודרני */
+}
