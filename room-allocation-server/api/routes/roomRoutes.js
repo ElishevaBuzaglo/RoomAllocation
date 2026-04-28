@@ -7,10 +7,11 @@ import {
   deleteRoom,
   searchRooms
 } from "../controllers/roomController.js";
+import { validateRoomSearch } from '../middlewares/roomValidation.js';
 
 const router = express.Router();
 
-router.get("/search", searchRooms);
+router.get('/search', validateRoomSearch, searchRooms);
 
 // נתיב כללי (POST ליצירה, GET לרשימה)
 router.route("/")

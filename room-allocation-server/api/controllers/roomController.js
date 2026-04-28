@@ -67,41 +67,36 @@ export const deleteRoom = async (req, res) => {
 // --- Search: חיפוש חדרים לפי מאפיינים וזמינות ---
 export const searchRooms = async (req, res) => {
   try {
-    const { 
-      minSize,      // מינימום מקומות
-      wing,         // אגף
-      floor,        // קומה
-      roomType,     // סוג חדר
-      hasProjector, // האם חובה מקרן
-      status        // סטטוס (למשל רק available)
-    } = req.query;
+    const { minSize, wing, floor, roomType, hasProjector } = req.query;
+    // שליפת הנתונים שעברו ולידציה ב-Middleware
+    const { start, end, startTimeStr, endTimeStr, dayOfWeek } = req.validatedTimes;
 
-    // בניית אובייקט שאילתה דינמי
     let filter = {};
-
-    // סינון לפי קיבולת (גדול או שווה לערך שנשלח)
     if (minSize) filter.size = { $gte: Number(minSize) };
-
-    // סינון לפי אגף
     if (wing) filter.wing = wing;
-
-    // סינון לפי קומה
     if (floor) filter.floor = Number(floor);
-
-    // סינון לפי סוג חדר
     if (roomType) filter.roomType = roomType;
-
-    // סינון לפי מקרן (רק אם המשתמש ביקש ספציפית "true")
     if (hasProjector === 'true') filter.hasProjector = true;
 
-    // סינון לפי סטטוס (ברירת מחדל בדרך כלל נרצה רק חדרים זמינים)
-    if (status) filter.status = status;
+    const rooms = await Room.find(filter).populate({
+      path: 'allocations',
+      match: {
+        status: 'approved',
+        $or: [
+          { kind: 'permanent', dayOfWeek: dayOfWeek },
+          { kind: 'temporary', startDate: { $lt: end }, endDate: { $gt: start } }
+        ]
+      }
+    });
 
-    // הרצת השאילתה ב-DB כולל ה-Virtuals של השיבוצים במידת הצורך
-    const rooms = await Room.find(filter).populate('allocations');
+    const availableRooms = rooms.filter(room => {
+      return !room.allocations.some(alloc => 
+        alloc.startTime < endTimeStr && alloc.endTime > startTimeStr
+      );
+    });
 
-    res.status(200).json(rooms);
+    res.status(200).json(availableRooms);
   } catch (err) {
-    res.status(500).json({ message: "שגיאה בחיפוש חדרים", error: err.message });
+    res.status(500).json({ message: "Server Error", error: err.message });
   }
 };
