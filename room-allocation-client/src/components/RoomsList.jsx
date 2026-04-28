@@ -26,11 +26,10 @@ const RoomsList = () => {
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           {rooms.map(room => (
             <div key={room._id} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '8px', width: '200px' }}>
-              <h3>אגף: {room.wing}</h3>
+              <h3>חדר: {room.roomNumber}</h3> {/* שימוש ב-roomNumber במקום wing אם רוצים כותרת ברורה */}
+              <p>אגף: {room.wing}</p>
               <p>קומה: {room.floor}</p>
-              <p>גודל: {room.size}</p>
-              <p>מקרן: {room.hasProjector ? 'יש' : 'אין'}</p>
-              <p>סטטוס: <strong>{room.status}</strong></p>
+              {/* ... שאר השדות ... */}
             </div>
           ))}
         </div>
