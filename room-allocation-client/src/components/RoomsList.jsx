@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const RoomsList = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/rooms')
+    fetch('/api/rooms')
       .then(res => res.json())
       .then(data => {
         setRooms(data);
@@ -26,10 +28,27 @@ const RoomsList = () => {
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           {rooms.map(room => (
             <div key={room._id} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '8px', width: '200px' }}>
-              <h3>חדר: {room.roomNumber}</h3> {/* שימוש ב-roomNumber במקום wing אם רוצים כותרת ברורה */}
+              <h3>חדר: {room.roomNumber}</h3>
               <p>אגף: {room.wing}</p>
               <p>קומה: {room.floor}</p>
-              {/* ... שאר השדות ... */}
+              <p>גודל: {room.size} איש</p>
+              <p>סוג: {room.roomType}</p>
+              <p>מקרן: {room.hasProjector ? 'יש' : 'אין'}</p>
+              <button
+                onClick={() => navigate(`/roomSchedule?roomId=${room._id}`)}
+                style={{
+                  marginTop: '10px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  width: '100%'
+                }}
+              >
+                צפה במערכת שעות
+              </button>
             </div>
           ))}
         </div>
@@ -37,5 +56,6 @@ const RoomsList = () => {
     </div>
   );
 };
+
 
 export default RoomsList;
