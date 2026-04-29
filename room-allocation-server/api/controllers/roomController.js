@@ -3,46 +3,46 @@ import Allocation from "../models/Allocation.js";
 import Cancellation from "../models/Cancellation.js";
 
 export const createRoom = async (req, res) => {
-    try {
-        const newRoom = await new Room(req.body).save();
-        res.status(201).json(newRoom);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
+  try {
+    const newRoom = await new Room(req.body).save();
+    res.status(201).json(newRoom);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 };
 
 export const getAllRooms = async (req, res) => {
-    try {
-        const rooms = await Room.find().populate('allocations').populate('cancellations');
-        res.status(200).json(rooms);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const rooms = await Room.find().populate('allocations').populate('cancellations');
+    res.status(200).json(rooms);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 export const getRoomById = async (req, res) => {
-    try {
-        const room = await Room.findById(req.params.id).populate('allocations').populate('cancellations');
-        if (!room) return res.status(404).json({ message: "לא נמצא" });
-        res.status(200).json(room);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const room = await Room.findById(req.params.id).populate('allocations').populate('cancellations');
+    if (!room) return res.status(404).json({ message: "לא נמצא" });
+    res.status(200).json(room);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // --- Update: עדכון פרטי חדר ---
 export const updateRoom = async (req, res) => {
-    try {
-        const updatedRoom = await Room.findByIdAndUpdate(
-            req.params.id, 
-            req.body, 
-            { new: true, runValidators: true }
-        );
-        if (!updatedRoom) return res.status(404).json({ message: "החדר לא נמצא" });
-        res.status(200).json(updatedRoom);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
+  try {
+    const updatedRoom = await Room.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!updatedRoom) return res.status(404).json({ message: "החדר לא נמצא" });
+    res.status(200).json(updatedRoom);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 };
 
 export const deleteRoom = async (req, res) => {
@@ -52,7 +52,7 @@ export const deleteRoom = async (req, res) => {
     await Allocation.deleteMany({ room: roomId });
     // מחיקת החדר
     const deletedRoom = await Room.findByIdAndDelete(roomId);
-    
+
     if (!deletedRoom) return res.status(404).json({ message: "החדר לא נמצא" });
     res.status(200).json({ message: "החדר וכל נתוניו נמחקו בהצלחה" });
   } catch (err) {
@@ -83,28 +83,33 @@ export const searchRooms = async (req, res) => {
           { kind: 'temporary', startDate: { $lt: end }, endDate: { $gt: start } }
         ]
       }
+    }).populate({
+      path: 'cancellations',
+      match: {
+        date: { $gte: start, $lte: end }
+      }
     });
 
     const availableRooms = rooms.filter(room => {
-      return !room.allocations.some(alloc => 
+      // בדיקה שאין allocations חופפות
+      const hasConflictingAllocation = room.allocations.some(alloc =>
         alloc.startTime < endTimeStr && alloc.endTime > startTimeStr
       );
+
+      // אם אין allocation בכלל, החדר זמין
+      if (!hasConflictingAllocation) return true;
+
+      // בדיקה אם יש cancellation שמבטלת את ה-allocation
+      const hasCancellationInPeriod = room.cancellations.some(cancel =>
+        cancel.startTime < endTimeStr && cancel.endTime > startTimeStr
+      );
+
+      // אם יש allocation אבל יש ביטול שמכסה את התקופה, החדר זמין (הביטול מבטל את ה-allocation)
+      return hasCancellationInPeriod;
     });
 
     res.status(200).json(availableRooms);
   } catch (err) {
     res.status(500).json({ message: "Server Error", error: err.message });
   }
-    try {
-        const roomId = req.params.id;
-        const deletedRoom = await Room.findByIdAndDelete(roomId);
-        if (!deletedRoom) return res.status(404).json({ message: "לא נמצא" });
-
-        await Allocation.deleteMany({ room: roomId });
-        await Cancellation.deleteMany({ room: roomId });
-
-        res.status(200).json({ message: "החדר וכל נתוניו נמחקו" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
 };
