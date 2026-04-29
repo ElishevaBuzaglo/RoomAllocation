@@ -80,20 +80,20 @@
     background: #00cec9; /* שינוי צבע קטן ב-hover לטאץ' מודרני */
 }
 /* מיכל הכפתורים - סידור בשורה אחת */
-.room-actions {
+/* .room-actions {
     display: flex;
-    flex-direction: row; /* הצבה זה לצד זה */
+    flex-direction: row; 
     gap: 10px;
     width: 100%;
     margin-top: 20px;
     justify-content: space-between;
     align-items: center;
-}
+} */
 
 /* כפתור צפייה - תופס את רוב השורה (כ-75%) */
-.view-btn {
-    flex: 3; /* יחס של 3 מתוך 4 */
-    background: #0984e3;
+/* .view-btn {
+    flex: 3; יחס של 3 מתוך 4 */
+    /* background: #0984e3;
     color: white;
     border: none;
     padding: 10px 15px;
@@ -102,29 +102,140 @@
     cursor: pointer;
     transition: background 0.2s;
     font-size: 0.9rem;
-}
+} */
 
 .view-btn:hover {
     background: #00cec9;
 }
 
 /* כפתור ערוך - לבן עם מסגרת כחולה (כ-25%) */
-.edit-btn {
-    flex: 1; /* יחס של 1 מתוך 4 (רבע מהרוחב) */
+/* .edit-btn {
+    flex: 1; יחס של 1 מתוך 4 (רבע מהרוחב)
     background: white;
     color: #0984e3;
-    border: 2px solid #0984e3; /* מסגרת כחולה */
-    padding: 10px 5px;
+    border: 2px solid #0984e3; מסגרת כחולה */
+    /* padding: 10px 5px;
     border-radius: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 0.85rem;
-    white-space: nowrap; /* מונע מהטקסט לרדת שורה */
-}
+    white-space: nowrap; מונע מהטקסט לרדת שורה
+} */
 
 .edit-btn:hover {
     background: #f0f7ff; /* רקע כחלחל בהיר מאוד בלבן */
     border-color: #00cec9;
     color: #00cec9;
+}
+
+
+
+
+/* עדכון מיכל הכפתורים כדי שיכיל 3 כפתורים בצורה טובה */
+.room-actions {
+    display: flex;
+    flex-direction: row; 
+    gap: 8px; /* צמצום קטן של הרווח כדי שייכנסו 3 כפתורים */
+    width: 100%;
+    margin-top: 20px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+/* כפתור צפייה - עכשיו יקבל חצי מהשורה (2 מתוך 4 יחידות) */
+.view-btn {
+    flex: 2; 
+    background: #0984e3;
+    color: white;
+    border: none;
+    padding: 10px 5px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.85rem;
+}
+
+/* כפתור עריכה - (1 מתוך 4 יחידות) */
+.edit-btn {
+    flex: 1; 
+    background: white;
+    color: #0984e3;
+    border: 2px solid #0984e3;
+    padding: 10px 5px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.8rem;
+}
+
+/* כפתור מחיקה חדש - אדום עדין (1 מתוך 4 יחידות) */
+.delete-btn {
+    flex: 1;
+    background: white;
+    color: #d63031;
+    border: 2px solid #d63031;
+    padding: 10px 5px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.8rem;
+}
+
+.delete-btn:hover {
+    background: #fff5f5; /* רקע אדמדם בהיר מאוד */
+    border-color: #ff7675;
+    color: #ff7675;
+}
+
+.rooms-filter-container {
+    width: 100%;
+    max-width: 1000px; /* תואם לרוחב הגריד בערך */
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: flex-start; /* מצמיד לימין בגלל ה-RTL */
+    padding: 0 10px;
+}
+
+.sort-wrapper {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    padding: 8px 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid #eef2f6;
+}
+
+.sort-wrapper label {
+    font-weight: 600;
+    color: #2d3436;
+    margin-left: 12px; /* רווח בין הטקסט לתיבת הבחירה */
+    font-size: 1rem;
+}
+
+.sort-select {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #0984e3; /* צבע כחול תואם לכפתורים */
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.sort-select:hover {
+    background: #f0f7ff;
+}
+
+.sort-select option {
+    color: #2d3436;
+    background: white;
 }

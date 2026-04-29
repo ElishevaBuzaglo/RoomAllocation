@@ -5,6 +5,6 @@ const router = express.Router();
 router.get('/', getAllAllocations);
 router.post('/', createAllocation);
 router.patch('/:id', updateAllocation);
-router.delete('/room/:roomId', deleteAllAllocationsByRoom);
+router.delete('/:id', deleteAllAllocationsByRoom);
 
 export default router;
