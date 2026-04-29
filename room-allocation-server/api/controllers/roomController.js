@@ -64,7 +64,7 @@ export const deleteRoom = async (req, res) => {
 export const searchRooms = async (req, res) => {
   try {
     const { minSize, wing, floor, roomType, hasProjector } = req.query;
-    // שליפת הנתונים שעברו ולידציה ב-Middleware
+    // שליפת נתונים שעברו ולידציה ב-Middleware
     const { start, end, startTimeStr, endTimeStr, dayOfWeek } = req.validatedTimes;
 
     let filter = {};
@@ -91,21 +91,22 @@ export const searchRooms = async (req, res) => {
     });
 
     const availableRooms = rooms.filter(room => {
-      // בדיקה שאין allocations חופפות
-      const hasConflictingAllocation = room.allocations.some(alloc =>
+      // 1. מציאת כל השיבוצים שחופפים לזמן המבוקש
+      const conflictingAllocations = room.allocations.filter(alloc =>
         alloc.startTime < endTimeStr && alloc.endTime > startTimeStr
       );
 
-      // אם אין allocation בכלל, החדר זמין
-      if (!hasConflictingAllocation) return true;
+      // אם אין שיבוצים חופפים - החדר פנוי לחלוטין
+      if (conflictingAllocations.length === 0) return true;
 
-      // בדיקה אם יש cancellation שמבטלת את ה-allocation
-      const hasCancellationInPeriod = room.cancellations.some(cancel =>
-        cancel.startTime < endTimeStr && cancel.endTime > startTimeStr
-      );
+      // 2. בדיקה עבור כל שיבוץ חופף - האם יש ביטול שמכסה את *כל* טווח החיפוש?
+      // הדרישה: הביטול חייב להיות בתוקף לכל אורך זמן החיפוש שהמשתמש ביקש
+      const isFullyCoveredByCancellation = room.cancellations.some(cancel => {
+        return cancel.startTime <= startTimeStr && cancel.endTime >= endTimeStr;
+      });
 
-      // אם יש allocation אבל יש ביטול שמכסה את התקופה, החדר זמין (הביטול מבטל את ה-allocation)
-      return hasCancellationInPeriod;
+      // החדר פנוי רק אם כל הקונפליקטים מיושבים על ידי ביטול מלא של טווח הזמן
+      return isFullyCoveredByCancellation;
     });
 
     res.status(200).json(availableRooms);

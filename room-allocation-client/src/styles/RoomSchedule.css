@@ -28,7 +28,7 @@
     border-radius: 16px;
     padding: 25px;
     margin-bottom: 35px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     border: 1px solid #eef2f6;
     display: flex;
     flex-direction: column;
@@ -68,7 +68,7 @@
     background: #ffffff;
     border-radius: 16px;
     padding: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     border: 1px solid #eef2f6;
     border-right: 6px solid;
     display: flex;
@@ -79,7 +79,7 @@
 
 .allocation-card:hover {
     transform: translateX(-4px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
 }
 
 .allocation-card.permanent {
@@ -160,4 +160,130 @@
     .date-selector-box input {
         min-width: 100%;
     }
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    /* מאפשר גלילה רוחבית במובייל */
+    margin-top: 20px;
+}
+
+.schedule-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    /* שומר על עמודות שוות */
+}
+
+.schedule-matrix th,
+.schedule-matrix td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.hour-column {
+    background-color: #f4f4f4;
+    font-weight: bold;
+    width: 80px;
+}
+
+.occupied {
+    background-color: #e3f2fd;
+    /* כחול בהיר לשיבוץ קבוע */
+    color: #1976d2;
+}
+
+.free {
+    color: #ccc;
+}
+
+
+
+
+
+/* שיבוץ קבוע - כחול בהיר */
+.cell-occupied {
+    background-color: #e3f2fd !important;
+    border-right: 4px solid #2196f3;
+    color: #0d47a1;
+    font-weight: 500;
+}
+
+/* שיבוץ זמני - כתום עדין */
+.cell-temp {
+    background-color: #fff3e0 !important;
+    border-right: 4px solid #ff9800;
+    color: #e65100;
+    font-weight: 500;
+}
+
+/* תא ריק */
+.cell-free {
+    background-color: #ffffff;
+    color: #999;
+}
+
+/* שיבוץ קבוע - כחול עדין */
+.cell-permanent {
+    background-color: #e3f2fd !important;
+    border-right: 4px solid #2196f3;
+    /* פס הדגשה בצד */
+    color: #0d47a1;
+    font-weight: 500;
+}
+
+/* שיבוץ זמני - כתום/צהוב עדין */
+.cell-temporary {
+    background-color: #fff3e0 !important;
+    border-right: 4px solid #ff9800;
+    /* פס הדגשה בצד */
+    color: #e65100;
+    font-weight: 500;
+}
+
+/* עיצוב כללי לתוכן התא */
+.cell-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+}
+
+.req-name {
+    font-size: 0.9rem;
+}
+
+/* הסתרת כפתורים בברירת מחדל והצגתם ב-hover (אופציונלי) */
+.cell-actions {
+    display: flex;
+    gap: 5px;
+    /* opacity: 0.8; */
+}
+
+.cell-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0;
+}
+
+/* צביעת כל העמודה/תא בעבר */
+.column-past {
+    background-color: #f2f2f2 !important;
+    /* אפור בהיר מאוד */
+    border-color: #e0e0e0 !important;
+}
+
+/* אופציונלי: הפיכת הטקסט בתאים אלו למעט יותר עמום */
+.column-past .user-name {
+    color: #757575;
+}
+
+/* עיצוב מיוחד למשבצת ריקה בעבר */
+.column-past.cell-free {
+    color: #ccc;
 }
