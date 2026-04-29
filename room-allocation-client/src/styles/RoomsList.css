@@ -79,3 +79,52 @@
 .view-btn:hover {
     background: #00cec9; /* שינוי צבע קטן ב-hover לטאץ' מודרני */
 }
+/* מיכל הכפתורים - סידור בשורה אחת */
+.room-actions {
+    display: flex;
+    flex-direction: row; /* הצבה זה לצד זה */
+    gap: 10px;
+    width: 100%;
+    margin-top: 20px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* כפתור צפייה - תופס את רוב השורה (כ-75%) */
+.view-btn {
+    flex: 3; /* יחס של 3 מתוך 4 */
+    background: #0984e3;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.9rem;
+}
+
+.view-btn:hover {
+    background: #00cec9;
+}
+
+/* כפתור ערוך - לבן עם מסגרת כחולה (כ-25%) */
+.edit-btn {
+    flex: 1; /* יחס של 1 מתוך 4 (רבע מהרוחב) */
+    background: white;
+    color: #0984e3;
+    border: 2px solid #0984e3; /* מסגרת כחולה */
+    padding: 10px 5px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    white-space: nowrap; /* מונע מהטקסט לרדת שורה */
+}
+
+.edit-btn:hover {
+    background: #f0f7ff; /* רקע כחלחל בהיר מאוד בלבן */
+    border-color: #00cec9;
+    color: #00cec9;
+}
