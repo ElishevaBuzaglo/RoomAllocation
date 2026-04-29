@@ -106,11 +106,11 @@ export const getAllocationsByTime = async (req, res) => {
     }
 };
 
-export const deleteAllocation = async (req, res) => {
+export const deleteAllAllocationsByRoom = async (req, res) => {
     try {
-        const deleted = await Allocation.findByIdAndDelete(req.params.id);
-        if (!deleted) return res.status(404).json({ message: "לא נמצא" });
-        res.status(200).json({ message: "נמחק בהצלחה" });
+        const { roomId } = req.params;
+        await Allocation.deleteMany({ room: roomId });
+        res.status(200).json({ message: "כל השיבוצים לחדר זה נמחקו בהצלחה" });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

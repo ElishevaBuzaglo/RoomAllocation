@@ -1,0 +1,136 @@
+/* מיכל ראשי - תואם ל-schedule-container ול-rooms-page */
+.edit-room-container {
+    max-width: 600px; /* רוחב ממוקד יותר לטפסים */
+    margin: 0 auto;
+    padding: 60px 20px;
+    direction: rtl;
+}
+
+/* כותרת הדף - תואם ל-schedule-header */
+.edit-room-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.edit-room-header h2 {
+    font-size: 2.5rem;
+    color: #1a1a1a;
+    margin: 0 0 10px 0;
+    font-weight: 700;
+}
+
+/* כרטיס הטופס - תואם ל-date-selector-box ול-room-card */
+.edit-room-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 35px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border: 1px solid #eef2f6;
+}
+
+/* סידור השדות בטופס */
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: right;
+}
+
+.form-group label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3436;
+}
+
+/* עיצוב שדות קלט - תואם ל-date-selector-box input */
+.input-field {
+    padding: 12px 16px;
+    border: 2px solid #dfe6e9;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #0984e3;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.1);
+}
+
+/* שורת ה-Checkbox */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    cursor: pointer;
+}
+
+.checkbox-group input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #0984e3;
+}
+
+/* מיכל הכפתורים - תואם ל-room-actions */
+.button-group {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+/* כפתור שמירה - תואם ל-view-btn */
+.btn-save {
+    flex: 3;
+    background: #0984e3;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+}
+
+.btn-save:hover {
+    background: #00cec9; /* צבע הטורקיז מה-hover של הדפים האחרים */
+}
+
+/* כפתור ביטול - תואם ל-edit-btn מהרשימה */
+.btn-cancel {
+    flex: 1;
+    background: white;
+    color: #0984e3;
+    border: 2px solid #0984e3;
+    padding: 12px 15px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+}
+
+.btn-cancel:hover {
+    background: #f0f7ff;
+}
+
+/* התאמה לנייד */
+@media (max-width: 768px) {
+    .button-group {
+        flex-direction: column;
+    }
+    .edit-room-header h2 {
+        font-size: 1.8rem;
+    }
+}
