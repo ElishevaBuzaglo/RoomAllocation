@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router'; // חשוב לשליפת ה-ID מה-URL
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { format, getDay } from 'date-fns';
 import { useSearchParams } from 'react-router-dom';
 import '../styles/RoomSchedule.css';
+
+// נתוני עזר לטבלה השבועית
+const DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
+const HOURS = Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
 
 const RoomSchedule = () => {
     const [searchParams] = useSearchParams();
@@ -17,90 +20,114 @@ const RoomSchedule = () => {
         const fetchRoomData = async () => {
             try {
                 setLoading(true);
-                setError(null);
-
-                // 2. קריאה לשרת באמצעות ה-Proxy (נתיב יחסי)
                 const response = await axios.get(`/api/rooms/${roomId}`);
-
-                // שמירת הנתונים (השרת מחזיר את אובייקט ה-room עם מערך ה-allocations בפנים)
                 setRoom(response.data);
             } catch (err) {
-                console.error("Error fetching room details:", err);
                 setError(err.response?.data?.message || "שגיאה בטעינת נתוני החדר");
             } finally {
                 setLoading(false);
             }
         };
 
-        if (roomId && roomId !== 'default') {
-            fetchRoomData();
-        }
+        if (roomId && roomId !== 'default') fetchRoomData();
     }, [roomId]);
 
-    // 3. הגנות וטעינה
-    if (loading) return <div style={{padding: '20px', textAlign: 'center'}}>טוען מערכת שעות...</div>;
-    if (error) return <div style={{padding: '20px', textAlign: 'center', color: '#d63031'}}>{error}</div>;
-    if (!room) return <div style={{padding: '20px', textAlign: 'center'}}>לא נמצא חדר להצגה.</div>;
+    // פונקציית עזר לבדיקת שיבוץ קבוע למשבצת בטבלה
+    const getPermanentAllocForSlot = (dayIndex, hour) => {
+        return room?.allocations?.find(alloc => 
+            alloc.kind === 'permanent' && 
+            alloc.dayOfWeek === dayIndex &&
+            hour >= alloc.startTime && 
+            hour < alloc.endTime
+        );
+    };
 
-    // --- לוגיקת הסינון להצגה ---
-    const dayOfWeek = getDay(selectedDate);
-    const dateString = format(selectedDate, 'yyyy-MM-dd');
+    // סינון שיבוצים זמניים בלבד לתאריך הנבחר
+    const temporaryAllocations = useMemo(() => {
+        if (!room || !room.allocations) return [];
+        const dateString = format(selectedDate, 'yyyy-MM-dd');
+        
+        return room.allocations
+            .filter(alloc => 
+                alloc.kind === 'temporary' && 
+                format(new Date(alloc.startDate), 'yyyy-MM-dd') === dateString
+            )
+            .sort((a, b) => a.startTime.localeCompare(b.startTime));
+    }, [room, selectedDate]);
 
-    // סינון השיבוצים שחזרו מה-populate
-    const visibleAllocations = room.allocations ? room.allocations.filter(alloc => {
-        // שיבוץ קבוע ליום שנבחר
-        if (alloc.kind === 'permanent' && alloc.dayOfWeek === dayOfWeek) {
-            return true;
-        }
-        // שיבוץ זמני לתאריך שנבחר
-        if (alloc.kind === 'temporary' && format(new Date(alloc.startDate), 'yyyy-MM-dd') === dateString) {
-            return true;
-        }
-        return false;
-    }) : [];
+    if (loading) return <div className="status-msg">טוען מערכת שעות...</div>;
+    if (error) return <div className="status-msg error">{error}</div>;
+    if (!room) return <div className="status-msg">לא נמצא חדר להצגה.</div>;
 
     return (
         <div className="schedule-container">
-            {/* כותרת החדר */}
             <div className="schedule-header">
                 <h2>מערכת שעות: {room.roomName || room.roomNumber}</h2>
-                <p>אגף {room.wing} | קומה {room.floor} | גודל: {room.size} איש</p>
-            </div>
-            
-            {/* בחירת תאריך */}
-            <div className="date-selector-box">
-                <label>בחר תאריך לצפייה:</label>
-                <input 
-                    type="date" 
-                    value={dateString} 
-                    onChange={(e) => setSelectedDate(new Date(e.target.value))} 
-                />
+                <p>אגף {room.wing} | קומה {room.floor} | קיבולת: {room.size}</p>
             </div>
 
-            {/* רשימת השיבוצים */}
-            <div className="allocations-list">
-                {visibleAllocations.length > 0 ? (
-                    visibleAllocations
-                    .sort((a, b) => a.startTime.localeCompare(b.startTime))
-                    .map(alloc => (
-                        <div 
-                            key={alloc._id} 
-                            className={`allocation-card ${alloc.kind}`}
-                        >
-                            <div className={`allocation-type ${alloc.kind}`}>
-                                {alloc.kind === 'permanent' ? 'קבוע' : 'זמני'}
+            {/* חלק 1: טבלת מערכת שבועה קבועה */}
+            <div className="weekly-section">
+                <h3>שיבוצים קבועים (שבועי)</h3>
+                <div className="table-wrapper">
+                    <table className="schedule-matrix">
+                        <thead>
+                            <tr>
+                                <th>שעה</th>
+                                {DAYS.map((day, i) => <th key={i}>{day}</th>)}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {HOURS.map(hour => (
+                                <tr key={hour}>
+                                    <td className="hour-col">{hour}</td>
+                                    {DAYS.map((_, dayIdx) => {
+                                        const alloc = getPermanentAllocForSlot(dayIdx, hour);
+                                        return (
+                                            <td key={dayIdx} className={alloc ? 'cell-occupied' : 'cell-free'}>
+                                                {alloc ? alloc.requesterName : '-'}
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <hr className="divider" />
+
+            {/* חלק 2: שיבוצים זמניים לפי תאריך */}
+            <div className="temporary-section">
+                <h3>שיבוצים זמניים ואירועים</h3>
+                <div className="date-selector-box">
+                    <label>בחר תאריך:</label>
+                    <input 
+                        type="date" 
+                        value={format(selectedDate, 'yyyy-MM-dd')} 
+                        onChange={(e) => setSelectedDate(new Date(e.target.value))} 
+                    />
+                </div>
+
+                <div className="allocations-list">
+                    {temporaryAllocations.length > 0 ? (
+                        temporaryAllocations.map(alloc => (
+                            <div key={alloc._id} className="allocation-card temporary">
+                                <div className="allocation-type">זמני</div>
+                                <div className="allocation-content">
+                                    <div className="allocation-time">{alloc.startTime} - {alloc.endTime}</div>
+                                    <div className="allocation-requester">{alloc.requesterName}</div>
+                                    {alloc.reason && <div className="allocation-reason">{alloc.reason}</div>}
+                                </div>
                             </div>
-                            <div className="allocation-content">
-                                <div className="allocation-time">{alloc.startTime} - {alloc.endTime}</div>
-                                <div className="allocation-requester">{alloc.requesterName}</div>
-                            </div>
+                        ))
+                    ) : (
+                        <div className="no-allocations">
+                            <p>אין שיבוצים זמניים לתאריך {format(selectedDate, 'dd/MM/yyyy')}</p>
                         </div>
-                    ))
-                ) : (
-                    <div className="no-allocations">
-                        <p>✨ החדר פנוי ביום זה</p>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -161,3 +161,36 @@
         min-width: 100%;
     }
 }
+
+.table-wrapper {
+    overflow-x: auto; /* מאפשר גלילה רוחבית במובייל */
+    margin-top: 20px;
+}
+
+.schedule-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* שומר על עמודות שוות */
+}
+
+.schedule-matrix th, .schedule-matrix td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.hour-column {
+    background-color: #f4f4f4;
+    font-weight: bold;
+    width: 80px;
+}
+
+.occupied {
+    background-color: #e3f2fd; /* כחול בהיר לשיבוץ קבוע */
+    color: #1976d2;
+}
+
+.free {
+    color: #ccc;
+}
