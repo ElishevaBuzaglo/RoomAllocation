@@ -6,6 +6,8 @@ export const addCancellation = async (req, res) => {
         const newCancellation = await new Cancellation(req.body).save();
         res.status(201).json(newCancellation);
     } catch (err) {
+        console.log(err.message);
+        
         res.status(400).json({ error: err.message });
     }
 };

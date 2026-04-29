@@ -1,39 +1,73 @@
 import Allocation from '../models/Allocation.js';
 
-// פונקציית העזר נשארת דומה, אך מוודאת שיש את כל הנתונים
 const checkOverlap = async (newAlloc, excludeId = null) => {
-    const { room, kind, startDate, dayOfWeek, startTime, endTime } = newAlloc;
+    const { room, kind, startDate, endDate, dayOfWeek, startTime, endTime } = newAlloc;
+    
     const query = { 
         room, 
         _id: { $ne: excludeId },
-        startTime: { $lt: endTime },
+        startTime: { $lt: endTime }, 
         endTime: { $gt: startTime }
     };
 
     const existingAllocations = await Allocation.find(query);
-    const searchDate = startDate ? new Date(startDate) : null;
 
     return existingAllocations.some(existing => {
-        if (kind === 'temporary') {
-            if (existing.kind === 'temporary') {
-                return new Date(existing.startDate).toDateString() === searchDate.toDateString();
-            }
-            return existing.dayOfWeek === searchDate.getDay();
-        } else {
-            if (existing.kind === 'permanent') {
-                return existing.dayOfWeek === dayOfWeek;
-            }
-            return new Date(existing.startDate).getDay() === dayOfWeek;
+        // בגלל שעכשיו לכולם יש dayOfWeek, הבדיקה הראשונה היא תמיד היום בשבוע
+        const sameDay = existing.dayOfWeek === dayOfWeek;
+        if (!sameDay) return false;
+
+        // אם זה אותו יום בשבוע, בודקים חפיפת תאריכים:
+        
+        // 1. קבוע מול קבוע (שניהם ללא תאריכי סוף מוגדרים או רלוונטיים)
+        if (kind === 'permanent' && existing.kind === 'permanent') {
+            return true; 
         }
+
+        // 2. זמני מול זמני (בודקים חפיפה בין טווחי התאריכים)
+        if (kind === 'temporary' && existing.kind === 'temporary') {
+            return (new Date(startDate) <= new Date(existing.endDate) && 
+                    new Date(endDate) >= new Date(existing.startDate));
+        }
+
+        // 3. זמני מול קבוע
+        if (kind === 'temporary' && existing.kind === 'permanent') {
+            // אם הם באותו יום בשבוע, והקבוע קיים "תמיד", אז יש חפיפה
+            return true;
+        }
+
+        // 4. קבוע חדש מול זמני קיים
+        if (kind === 'permanent' && existing.kind === 'temporary') {
+            return true;
+        }
+
+        return false;
     });
 };
 
+// פונקציית עזר לבדיקה אם יום בשבוע קיים בטווח תאריכים
+function checkDayInRange(start, end, targetDay) {
+    let curr = new Date(start);
+    while (curr <= end) {
+        if (curr.getDay() === targetDay) return true;
+        curr.setDate(curr.getDate() + 1);
+    }
+    return false;
+}
+
 export const createAllocation = async (req, res) => {
     try {
-        if (await checkOverlap(req.body)) {
+        // המרה של roomId ל-room בנתונים
+        const body = req.body;
+        if (body.roomId && !body.room) {
+            body.room = body.roomId;
+            delete body.roomId;
+        }
+
+        if (await checkOverlap(body)) {
             return res.status(400).json({ message: "החדר כבר תפוס בזמן זה" });
         }
-        const newAllocation = await new Allocation(req.body).save();
+        const newAllocation = await new Allocation(body).save();
         res.status(201).json(newAllocation);
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -47,7 +81,7 @@ export const updateAllocation = async (req, res) => {
 
         // מיזוג נתונים קיימים עם העדכון כדי שבדיקת החפיפה תהיה אמינה
         const mergedData = { ...current.toObject(), ...req.body };
-        
+
         if (await checkOverlap(mergedData, req.params.id)) {
             return res.status(400).json({ message: "העדכון יוצר חפיפה עם שיבוץ קיים" });
         }
@@ -74,7 +108,7 @@ export const getAllocationsByRoom = async (req, res) => {
         const { roomId } = req.params;
         // find({ room: roomId }) מחפש את כל השיבוצים שהשדה room שלהם תואם ל-ID שקיבלנו
         const allocations = await Allocation.find({ room: roomId }).populate('room');
-        
+
         if (allocations.length === 0) {
             return res.status(200).json({ message: "לא נמצאו שיבוצים לחדר זה", data: [] });
         }
@@ -90,7 +124,7 @@ export const getAllocationsByRoom = async (req, res) => {
 export const getAllocationsByTime = async (req, res) => {
     try {
         const { time } = req.query; // דוגמה: /api/allocations/search/time?time=10:30
-        
+
         if (!time) {
             return res.status(400).json({ message: "יש לספק שעה לחיפוש בפורמט HH:mm" });
         }
