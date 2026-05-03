@@ -59,12 +59,16 @@ async function seedDatabase() {
                 endTime: "11:00",
                 status: "approved"
             },
+
+
+
             {
                 room: rooms[0]._id,
+                dayOfWeek: 1, // שני - כמו 2026-05-04
                 requesterName: "פרופ. לוי",
                 kind: "temporary",
                 startDate: new Date("2026-05-01"),
-                endDate: new Date("2026-05-01"),
+                endDate: new Date("2026-05-02"),
                 startTime: "14:00",
                 endTime: "16:00",
                 status: "approved"

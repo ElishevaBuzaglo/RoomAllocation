@@ -41,7 +41,6 @@ const RoomsList = () => {
   // פונקציה לניקוי כל השיבוצים 
   // const clearAllAllocations = async () => {
   //   const confirmDelete = window.confirm("האם את בטוחה שברצונך למחוק את כל השיבוצים מכל החדרים? פעולה זו אינה ניתנת לביטול.");
-
   //   if (confirmDelete) {
   //     try {
   //       const response = await fetch('http://localhost:5000/api/allocations/clear-all', {

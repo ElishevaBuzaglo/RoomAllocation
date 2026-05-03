@@ -2,11 +2,11 @@ import Allocation from '../models/Allocation.js';
 
 const checkOverlap = async (newAlloc, excludeId = null) => {
     const { room, kind, startDate, endDate, dayOfWeek, startTime, endTime } = newAlloc;
-    
-    const query = { 
-        room, 
+
+    const query = {
+        room,
         _id: { $ne: excludeId },
-        startTime: { $lt: endTime }, 
+        startTime: { $lt: endTime },
         endTime: { $gt: startTime }
     };
 
@@ -18,16 +18,16 @@ const checkOverlap = async (newAlloc, excludeId = null) => {
         if (!sameDay) return false;
 
         // אם זה אותו יום בשבוע, בודקים חפיפת תאריכים:
-        
+
         // 1. קבוע מול קבוע (שניהם ללא תאריכי סוף מוגדרים או רלוונטיים)
         if (kind === 'permanent' && existing.kind === 'permanent') {
-            return true; 
+            return true;
         }
 
         // 2. זמני מול זמני (בודקים חפיפה בין טווחי התאריכים)
         if (kind === 'temporary' && existing.kind === 'temporary') {
-            return (new Date(startDate) <= new Date(existing.endDate) && 
-                    new Date(endDate) >= new Date(existing.startDate));
+            return (new Date(startDate) <= new Date(existing.endDate) &&
+                new Date(endDate) >= new Date(existing.startDate));
         }
 
         // 3. זמני מול קבוע
@@ -143,8 +143,16 @@ export const getAllocationsByTime = async (req, res) => {
 export const deleteAllAllocationsByRoom = async (req, res) => {
     try {
         const { roomId } = req.params;
-        await Allocation.deleteMany({ room: roomId });
-        res.status(200).json({ message: "כל השיבוצים לחדר זה נמחקו בהצלחה" });
+        console.log("Room ID received:", roomId);
+        console.log("Type of Room ID:", typeof roomId);
+        // שמירת התוצאה של פעולת המחיקה
+        const result = await Allocation.deleteMany({ room: roomId });
+
+        // שליחת מספר הפריטים שנמחקו חזרה לקליינט
+        res.status(200).json({
+            message: "פעולת המחיקה הסתיימה",
+            deletedCount: result.deletedCount
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

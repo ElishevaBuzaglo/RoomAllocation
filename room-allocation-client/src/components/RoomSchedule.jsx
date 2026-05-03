@@ -14,7 +14,6 @@ const RoomSchedule = () => {
     const [selectedDate, setSelectedDate] = useState(null); // null = מערכת קבועה
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
         requesterName: '',
@@ -30,6 +29,7 @@ const RoomSchedule = () => {
         try {
             setLoading(true);
             const response = await axios.get(`/api/rooms/${roomId}`);
+            console.log("Cancellations from server:", response.data.cancellations);
             setRoom(response.data);
         } catch (err) {
             setError(err.response?.data?.message || "שגיאה בטעינת נתוני החדר");
@@ -43,6 +43,7 @@ const RoomSchedule = () => {
     }, [roomId]);
 
     // --- לוגיקת חישוב שבועי ---
+    // useMemo משמשת כאן כדי לחשב את טווח השבוע רק כאשר selectedDate משתנה, וכדי לסנן את השיבוצים הזמניים רק כאשר room או weekRange משתנים. זה מונע חישובים מיותרים בכל רינדור מחדש של הקומפוננטה.
     const weekRange = useMemo(() => {
         if (!selectedDate) return null;
         const start = startOfWeek(selectedDate, { weekStartsOn: 0 }); // יום ראשון
@@ -50,6 +51,7 @@ const RoomSchedule = () => {
         return { start, end };
     }, [selectedDate]);
 
+    // סינון השיבוצים הזמניים לפי טווח השבוע הנבחר - רק אלו שנופלים בתוך הטווח יוצגו
     const weeklyTemporaryAllocations = useMemo(() => {
         if (!room || !room.allocations || !weekRange) return [];
         return room.allocations.filter(alloc => {
@@ -59,11 +61,85 @@ const RoomSchedule = () => {
         });
     }, [room, weekRange]);
 
+    // הוסף את זה מעל ה-return של הקומפוננטה
+    const scheduleMap = useMemo(() => {
+    const map = {};
+    if (!room) return map;
+
+    const { allocations = [], cancellations = [] } = room;
+
+    // פונקציית עזר פנימית למילוי המפה לאורך טווח שעות
+    const fillMapRange = (a, type, extraData = {}) => {
+        const startHour = parseInt(a.startTime.split(':')[0]);
+        const endHour = parseInt(a.endTime.split(':')[0]);
+
+        for (let h = startHour; h < endHour; h++) {
+            const hourKey = `${h < 10 ? '0' : ''}${h}:00`;
+            const key = `${a.dayOfWeek}-${hourKey}`;
+            
+            // שמירה על המידע הקיים ועדכון השעה הספציפית בתוך הטווח
+            map[key] = { 
+                ...a, 
+                type, 
+                ...extraData,
+                // אופציונלי: מאפשר לזהות את תחילת הבלוק לצורכי עיצוב
+                isStartSlot: h === startHour 
+            };
+        }
+    };
+
+    // 1. מיפוי קבועים - פריסה על פני טווח השעות
+    allocations.filter(a => a.kind === 'permanent').forEach(a => {
+        fillMapRange(a, 'permanent');
+    });
+
+    // 2. מיפוי זמניים (רק אם נבחר שבוע)
+    if (selectedDate) {
+        const startOfSelectedWeek = startOfWeek(selectedDate, { weekStartsOn: 0 });
+
+        allocations.filter(a => a.kind === 'temporary').forEach(a => {
+            const startLimit = new Date(a.startDate);
+            const endLimit = new Date(a.endDate);
+            const dayOfSlot = addDays(startOfSelectedWeek, a.dayOfWeek);
+
+            if (dayOfSlot >= startLimit && dayOfSlot <= endLimit) {
+                fillMapRange(a, 'temporary');
+            }
+        });
+
+        // 3. מיפוי ביטולים - החלת הביטול על כל השעות בטווח של השיבוץ
+        cancellations.forEach(c => {
+            const cDate = new Date(c.date);
+            const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
+            const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 0 });
+
+            if (cDate >= weekStart && cDate <= weekEnd) {
+                const dayIdx = cDate.getDay();
+                const startHour = parseInt(c.startTime.split(':')[0]);
+                const endHour = parseInt(c.endTime.split(':')[0]);
+
+                for (let h = startHour; h < endHour; h++) {
+                    const hourKey = `${h < 10 ? '0' : ''}${h}:00`;
+                    const key = `${dayIdx}-${hourKey}`;
+                    
+                    if (map[key]) {
+                        map[key].isCancelled = true;
+                        map[key].cancellationId = c._id;
+                    }
+                }
+            }
+        });
+    }
+    return map;
+}, [room, selectedDate]);
+
+
     // --- Handlers מלאים ---
     const handleDeleteAll = async () => {
         if (!window.confirm("האם אתה בטוח שברצונך למחוק את כל השיבוצים לחדר זה?")) return;
         try {
-            await axios.delete(`/api/allocations/room/${roomId}`);
+            console.log("Attempting to delete all allocations for roomId:", roomId);
+            await axios.delete(`/api/allocations/${roomId}`);
             alert("כל השיבוצים נמחקו בהצלחה");
             fetchRoomData();
         } catch (err) {
@@ -96,10 +172,13 @@ const RoomSchedule = () => {
         if (reason === null) return;
 
         try {
+            const startOfThisWeek = startOfWeek(selectedDate, { weekStartsOn: 0 });
+
+            const actualSlotDate = addDays(startOfThisWeek, alloc.dayOfWeek);
             // 2. שליחת הנתונים בדיוק לפי ה-Schema
             await axios.post("/api/cancellations", {
                 room: roomId,                       // ObjectId של החדר (Path: room)
-                date: format(selectedDate, 'yyyy-MM-dd'), // התאריך שנבחר (Path: date)
+                date: format(actualSlotDate, 'yyyy-MM-dd'), // התאריך שנבחר (Path: date)
                 startTime: alloc.startTime,         // השעה מהשיבוץ המקורי (Path: startTime)
                 endTime: alloc.endTime,             // השעה מהשיבוץ המקורי (Path: endTime)
                 reason: reason || "לא צוינה סיבה",   // סיבת הביטול (Path: reason)
@@ -112,10 +191,6 @@ const RoomSchedule = () => {
             console.error("Error details:", err.response?.data);
             alert("שגיאה ברישום הביטול: " + (err.response?.data?.message || "בדוק את הנתונים"));
         }
-    };
-    const navigateWeek = (direction) => {
-        const base = selectedDate || new Date();
-        setSelectedDate(direction > 0 ? addWeeks(base, 1) : subWeeks(base, 1));
     };
 
     const handleRestoreCancellation = async (cancellationId) => {
@@ -132,41 +207,6 @@ const RoomSchedule = () => {
         } catch (err) {
             console.error(err);
             alert("שגיאה בשחזור: " + (err.response?.data?.message || "בדוק את החיבור לשרת"));
-        }
-    };
-
-    const handleAddTemporaryManual = async () => {
-        // 1. בדיקה שיש תאריך נבחר (כי שיבוץ זמני חייב תאריך)
-        if (!selectedDate) {
-            alert("אנא בחר תאריך בלוח השנה לפני הוספת שיבוץ זמני");
-            return;
-        }
-
-        // 2. איסוף נתונים מהמשתמש
-        const requesterName = prompt("שם המרצה/המבקש:");
-        if (!requesterName) return;
-
-        const startTime = prompt("שעת התחלה (לדוגמה 08:00):");
-        if (!startTime) return;
-
-        const endTime = prompt("שעת סיום (לדוגמה 10:00):");
-        if (!endTime) return;
-
-        try {
-            await axios.post("/api/allocations", {
-                roomId,
-                kind: 'temporary',
-                requesterName,
-                startDate: format(selectedDate, 'yyyy-MM-dd'),
-                endDate: format(selectedDate, 'yyyy-MM-dd'),
-                startTime,
-                endTime
-            });
-
-            alert("השיבוץ הזמני נוסף בהצלחה!");
-            fetchRoomData();
-        } catch (err) {
-            alert("שגיאה: " + (err.response?.data?.message || "החדר תפוס בזמן זה"));
         }
     };
 
@@ -192,6 +232,13 @@ const RoomSchedule = () => {
         }
     };
 
+    const navigateWeek = (direction) => {
+        // אם אין תאריך נבחר (מערכת קבועה), נתחיל מהיום. אם יש, נוסיף/נחסיר שבוע
+        const baseDate = selectedDate || new Date();
+        const newDate = direction > 0 ? addWeeks(baseDate, 1) : subWeeks(baseDate, 1);
+        setSelectedDate(newDate);
+    };
+
     // --- Helpers לשליפת מידע למשבצת ---
     const getSlotData = (dayIdx, hour) => {
         const perm = room?.allocations?.find(a =>
@@ -209,6 +256,7 @@ const RoomSchedule = () => {
         if (weekRange) {
             const targetDate = addDays(weekRange.start, dayIdx);
             temp = weeklyTemporaryAllocations.find(a => {
+                if (!a.startDate || !a.endDate) return false;
                 const start = new Date(a.startDate);
                 const end = new Date(a.endDate);
                 const current = targetDate; // התאריך של המשבצת בטבלה
@@ -337,60 +385,50 @@ const RoomSchedule = () => {
                             {HOURS.map(hour => (
                                 <tr key={hour}>
                                     <td className="hour-col">{hour}</td>
-                                    {DAYS.map((_, dayIdx) => {
-                                        // 1. שליפת הנתונים מהפונקציה
-                                        const { perm, temp, isCancelled, cancellationId } = getSlotData(dayIdx, hour);
-                                        const active = isCancelled ? null : (temp || perm);
+                                    {DAYS.map((day, dayIdx) => {
+                                        // 1. הגדרת התאריך של היום הנוכחי בעמודה
+                                        // אנחנו לוקחים את תחילת השבוע ומוסיפים לו את מספר הימים (dayIdx)
+                                        const dayDate = weekRange ? addDays(weekRange.start, dayIdx) : null;
 
-                                        // 2. הגדרת המשתנה שחסר לך (isPastSlot) - זה התיקון לשגיאה!
-                                        const slotDate = weekRange ? addDays(weekRange.start, dayIdx) : null;
-                                        const isPastSlot = slotDate && isBefore(slotDate, startOfToday());
+                                        // 2. הגדרת isPastSlot: האם התאריך הזה קטן (מוקדם יותר) מהתאריך של היום?
+                                        // פונקציית isBefore בודקת אם התאריך הראשון קטן מהשני
+                                        // פונקציית startOfToday מחזירה את התאריך של היום בשעה 00:00
+                                        const isPastSlot = dayDate && isBefore(dayDate, startOfToday());
+
+                                        // 3. שליפת הנתון מהמפה שבנינו קודם
+                                        const slot = scheduleMap[`${dayIdx}-${hour}`];
 
                                         return (
-                                            <td
-                                                key={dayIdx}
-                                                className={`${active ? (temp ? 'cell-temp' : 'cell-occupied') : 'cell-free'} ${isPastSlot ? 'column-past' : ''}`}
-                                            >
-                                                {active ? (
+                                            <td key={dayIdx} className={`${slot ? (slot.isCancelled ? 'cell-free' : (slot.type === 'temporary' ? 'cell-temp' : 'cell-occupied')) : 'cell-free'} ${isPastSlot ? 'column-past' : ''}`}>
+                                                {slot ? (
                                                     <div className="cell-content">
-                                                        <span style={{
-                                                            textDecoration: isCancelled ? 'line-through' : 'none',
-                                                            opacity: isCancelled ? 0.5 : 1,
-                                                            color: isCancelled ? 'red' : (isPastSlot ? '#666' : 'inherit')
-                                                        }}>
-                                                            {active.requesterName}
+                                                        <span style={{ textDecoration: slot.isCancelled ? 'line-through' : 'none' }}>
+                                                            {slot.requesterName}
                                                         </span>
 
                                                         <div className="cell-actions">
-                                                            {/* כפתור שחזור - מופיע רק אם בוטל */}
-                                                            {isCancelled ? (
+                                                            {slot.isCancelled ? (
                                                                 <button
-                                                                    onClick={() => handleRestoreCancellation(cancellationId)}
-                                                                    title="שחזר שיבוץ"
-                                                                    style={{ backgroundColor: '#e8f5e9', border: '1px solid #4caf50', borderRadius: '4px' }}
+                                                                    onClick={() => handleRestoreCancellation(slot.cancellationId)}
+                                                                    className="btn-restore"
                                                                 >
                                                                     🔄
                                                                 </button>
                                                             ) : (
                                                                 <>
-                                                                    {/* כפתור שעון - תמיד בולט */}
-                                                                    {perm && (
-                                                                        <button
-                                                                            onClick={() => handleUpdatePermanent(perm._id, perm.startTime, perm.endTime)}
-                                                                            title="ערוך שעות"
-                                                                        >
+                                                                    {slot.type === 'permanent' && (
+                                                                        <button onClick={() => handleUpdatePermanent(slot._id, slot.startTime, slot.endTime)}>
                                                                             🕒
                                                                         </button>
                                                                     )}
-                                                                    {/* כפתור ביטול - מטושטש בעבר, רגיל בעתיד */}
-                                                                    {perm && selectedDate && (
+                                                                    {selectedDate && slot.type === 'permanent' && (
                                                                         <button
-                                                                            onClick={!isPastSlot ? () => handleAddCancellation(perm) : undefined}
-                                                                            title={isPastSlot ? "לא ניתן לבטל מהעבר" : "בטל חד-פעמי"}
+                                                                            onClick={!isPastSlot ? () => handleAddCancellation(slot) : undefined}
                                                                             style={{
                                                                                 opacity: isPastSlot ? 0.2 : 1,
                                                                                 cursor: isPastSlot ? 'not-allowed' : 'pointer'
                                                                             }}
+                                                                            title={isPastSlot ? "לא ניתן לבטל אירוע שעבר" : "בטל שיבוץ"}
                                                                         >
                                                                             ❌
                                                                         </button>
