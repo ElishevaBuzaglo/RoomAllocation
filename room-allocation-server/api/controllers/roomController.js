@@ -74,41 +74,68 @@ export const searchRooms = async (req, res) => {
     if (roomType) filter.roomType = roomType;
     if (hasProjector === 'true') filter.hasProjector = true;
 
-    const rooms = await Room.find(filter).populate({
-      path: 'allocations',
-      match: {
-        status: 'approved',
-        $or: [
-          { kind: 'permanent', dayOfWeek: dayOfWeek },
-          { kind: 'temporary', startDate: { $lt: end }, endDate: { $gt: start } }
-        ]
-      }
-    }).populate({
-      path: 'cancellations',
-      match: {
-        date: { $gte: start, $lte: end }
-      }
-    });
+    // const rooms = await Room.find(filter).populate({
+    //   path: 'allocations',
+    //   match: {
+    //     status: 'approved',
+    //     $or: [
+    //       { kind: 'permanent', dayOfWeek: dayOfWeek },
+    //       { kind: 'temporary', startDate: { $lt: end }, endDate: { $gt: start } }
+    //     ]
+    //   }
+    // }).populate({
+    //   path: 'cancellations',
+    //   match: {
+    //     date: { $gte: start, $lte: end }
+    //   }
+    // });   
+
+    // const availableRooms = rooms.filter(room => {
+    //   // 1. מציאת כל השיבוצים שחופפים לזמן המבוקש
+    //   const conflictingAllocations = room.allocations.filter(alloc =>
+    //     alloc.startTime < endTimeStr && alloc.endTime > startTimeStr
+    //   );
+
+    //   // אם אין שיבוצים חופפים - החדר פנוי לחלוטין
+    //   if (conflictingAllocations.length === 0) return true;
+
+    //   // 2. בדיקה עבור כל שיבוץ חופף - האם יש ביטול שמכסה את *כל* טווח החיפוש?
+    //   // הדרישה: הביטול חייב להיות בתוקף לכל אורך זמן החיפוש שהמשתמש ביקש
+    //   const isFullyCoveredByCancellation = room.cancellations.some(cancel => {
+    //     return cancel.startTime <= startTimeStr && cancel.endTime >= endTimeStr;
+    //   });
+
+    //   // החדר פנוי רק אם כל הקונפליקטים מיושבים על ידי ביטול מלא של טווח הזמן
+    //   return isFullyCoveredByCancellation;
+    // });
+
+    const rooms = await Room.find(filter)
+    .populate('allocations')
+    .populate('cancellations'); 
 
     const availableRooms = rooms.filter(room => {
-      // 1. מציאת כל השיבוצים שחופפים לזמן המבוקש
-      const conflictingAllocations = room.allocations.filter(alloc =>
-        alloc.startTime < endTimeStr && alloc.endTime > startTimeStr
-      );
 
-      // אם אין שיבוצים חופפים - החדר פנוי לחלוטין
-      if (conflictingAllocations.length === 0) return true;
-
-      // 2. בדיקה עבור כל שיבוץ חופף - האם יש ביטול שמכסה את *כל* טווח החיפוש?
-      // הדרישה: הביטול חייב להיות בתוקף לכל אורך זמן החיפוש שהמשתמש ביקש
-      const isFullyCoveredByCancellation = room.cancellations.some(cancel => {
-        return cancel.startTime <= startTimeStr && cancel.endTime >= endTimeStr;
+      const conflictingAllocations = room.allocations.filter(alloc => {
+    
+        if (alloc.dayOfWeek !== dayOfWeek) return false;
+    
+        return (
+          alloc.startTime < endTimeStr &&
+          alloc.endTime > startTimeStr
+        );
       });
-
-      // החדר פנוי רק אם כל הקונפליקטים מיושבים על ידי ביטול מלא של טווח הזמן
-      return isFullyCoveredByCancellation;
+    
+      if (conflictingAllocations.length === 0) return true;
+    
+      const isCoveredByCancellation = room.cancellations.some(cancel =>
+        cancel.startTime <= startTimeStr &&
+        cancel.endTime >= endTimeStr
+      );
+    
+      return isCoveredByCancellation;
     });
 
+    
     res.status(200).json(availableRooms);
   } catch (err) {
     res.status(500).json({ message: "Server Error", error: err.message });
