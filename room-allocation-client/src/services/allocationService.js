@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api"; // תתאימי לפורט שלך
+const API = "http://localhost:5000/api"; 
 
 export const addAssignment = async (data) => {
   try {
