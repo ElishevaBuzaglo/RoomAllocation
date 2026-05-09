@@ -1,0 +1,85 @@
+.add-assignment-container {
+    padding: 30px;
+    max-width: 900px;
+    margin: auto;
+    font-family: Arial, sans-serif;
+  }
+  
+  .title {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #f7f7f7;
+    padding: 20px;
+    border-radius: 12px;
+  }
+  
+  .input {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  
+  .time-row,
+  .date-row {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .search-btn {
+    background: #4cafef;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .search-btn:hover {
+    background: #3a9bdc;
+  }
+  
+  .rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+  }
+  
+  .room-card {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 15px;
+    background: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  
+  .assign-btn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: #28a745;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .assign-btn:hover {
+    background: #218838;
+  }
+  
+  .no-results {
+    text-align: center;
+    color: gray;
+  }

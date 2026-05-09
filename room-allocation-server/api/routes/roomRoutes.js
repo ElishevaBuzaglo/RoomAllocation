@@ -7,6 +7,7 @@ import {
   deleteRoom,
   searchRooms
 } from "../controllers/roomController.js";
+
 import { validateRoomSearch } from '../middlewares/roomValidation.js';
 
 const router = express.Router();

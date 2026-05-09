@@ -4,6 +4,7 @@ import RoomsList from "../components/RoomsList"
 import { Nav } from "./Nav"
 import EditRoom from "../components/EditRoom"
 import RoomSchedule from "../components/RoomSchedule"
+import AddAssignment from "../components/AddAssignment"
 
 export const Routing = () => {
     return <>
@@ -11,7 +12,8 @@ export const Routing = () => {
             <Route path="home" element={<Home></Home>}></Route>
             <Route path="roomList" element={<RoomsList></RoomsList>}></Route>
             <Route path="roomSchedule" element={<RoomSchedule></RoomSchedule>}></Route>
-<Route path="roomList/editRoom/:roomId" element={<EditRoom />} />
+            <Route path="roomList/editRoom/:roomId" element={<EditRoom />} />
+            <Route path="addAssignment" element={<AddAssignment />} />
         </Routes>
     </>
 }
