@@ -24,12 +24,4 @@ router.route("/:id")
   .put(updateRoom)
   .delete(deleteRoom);
 
-// נתיב כללי (POST ליצירה, GET לרשימה)
-router.route("/")
-  .post(createRoom)
-  .get(getAllRooms);
-
-router.route("/").get(getAllRooms).post(createRoom);
-router.route("/:id").get(getRoomById).delete(deleteRoom);
-
 export default router;
